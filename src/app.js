@@ -24,25 +24,14 @@ app.use(express.static(path.join(__dirname, '..', 'dist')));
 // 健康检查端点
 app.get('/api/health', async (req, res) => {
   try {
-    const db = require('./config/db').getDB();
-    if (db) {
-      // 尝试执行一个简单的数据库操作
-      await db.command({ ping: 1 });
-      res.status(200).json({ 
-        status: 'ok', 
-        database: 'connected' 
-      });
-    } else {
-      res.status(500).json({ 
-        status: 'error', 
-        database: 'not connected' 
-      });
-    }
+    res.status(200).json({ 
+      status: 'ok', 
+      message: 'Server is running' 
+    });
   } catch (error) {
     res.status(500).json({ 
       status: 'error', 
-      database: 'connection failed',
-      error: error.message 
+      message: 'Server error' 
     });
   }
 });
@@ -52,19 +41,25 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'dist', 'index.html'));
 });
 
-const PORT = process.env.PORT || 3000;
+// 导出app供Serverless Function使用
+module.exports = app;
 
-// 启动应用并连接数据库
-async function startApp() {
-  try {
-    await connectDB();
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error('Error starting app:', error);
-    process.exit(1);
+// 本地开发时启动服务器
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  
+  // 启动应用并连接数据库
+  async function startApp() {
+    try {
+      await connectDB();
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    } catch (error) {
+      console.error('Error starting app:', error);
+      process.exit(1);
+    }
   }
+  
+  startApp();
 }
-
-startApp();

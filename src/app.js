@@ -5,6 +5,7 @@ const userRoutes = require('./routes/userRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const submissionRoutes = require('./routes/submissionRoutes');
 const userQuestionScoreRoutes = require('./routes/userQuestionScoreRoutes');
+const { connectDB } = require('./config/db');
 require('dotenv').config();
 
 const app = express();
@@ -27,6 +28,17 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// 启动应用并连接数据库
+async function startApp() {
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Error starting app:', error);
+    process.exit(1);
+  }
+}
+
+startApp();

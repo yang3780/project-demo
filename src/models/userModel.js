@@ -44,8 +44,19 @@ class UserModel {
   }
 
   static async findById(id) {
+    console.log('Looking for user with id:', id);
     const db = getDB();
-    const user = await db.collection('users').findOne({ _id: id });
+    let user;
+    try {
+      // 尝试直接使用id作为ObjectId
+      user = await db.collection('users').findOne({ _id: id });
+    } catch (error) {
+      console.error('Error finding user by id:', error);
+      // 如果失败，尝试其他方法，比如通过用户名查询
+      // 这里可以根据实际情况调整查询策略
+      user = null;
+    }
+    console.log('Found user by id:', user);
     if (user) {
       user.id = user._id;
       delete user._id;

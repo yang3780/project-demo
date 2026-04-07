@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const UserModel = require('../models/userModel');
+const pool = require('../config/db');
 require('dotenv').config();
 
 class UserController {
@@ -152,9 +153,7 @@ class UserController {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const { getDB } = require('../config/db');
-      const db = getDB();
-      await db.collection('users').deleteOne({ _id: userId });
+      await pool.execute('DELETE FROM users WHERE id = ?', [userId]);
       res.json({ message: 'User deleted successfully' });
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });

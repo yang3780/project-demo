@@ -1,104 +1,64 @@
-const { getDB } = require('../config/db');
+const pool = require('../config/db');
 
 class QuestionModel {
   static async create(title, description, inputFormat, outputFormat, sampleInput, sampleOutput, difficulty, score, type, timeLimit, memoryLimit) {
-    const db = getDB();
-    const result = await db.collection('questions').insertOne({
-      title,
-      description,
-      input_format: inputFormat,
-      output_format: outputFormat,
-      sample_input: sampleInput,
-      sample_output: sampleOutput,
-      difficulty,
-      score,
-      type,
-      time_limit: timeLimit,
-      memory_limit: memoryLimit
-    });
+    const [result] = await pool.execute(
+      'INSERT INTO questions (title, description, input_format, output_format, sample_input, sample_output, difficulty, score, type, time_limit, memory_limit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, description, inputFormat, outputFormat, sampleInput, sampleOutput, difficulty, score, type, timeLimit, memoryLimit]
+    );
     return result;
   }
 
   static async findById(id) {
-    const db = getDB();
-    const question = await db.collection('questions').findOne({ _id: id });
-    if (question) {
-      question.id = question._id;
-      delete question._id;
-    }
-    return question;
+    const [rows] = await pool.execute(
+      'SELECT * FROM questions WHERE id = ?',
+      [id]
+    );
+    return rows[0];
   }
 
   static async getAllQuestions() {
-    const db = getDB();
-    const questions = await db.collection('questions').find({}).toArray();
-    // 转换 _id 为 id
-    return questions.map(question => {
-      question.id = question._id;
-      delete question._id;
-      return question;
-    });
+    const [rows] = await pool.execute('SELECT * FROM questions');
+    return rows;
   }
 
   static async getQuestionsByDifficulty(difficulty) {
-    const db = getDB();
-    const questions = await db.collection('questions').find({ difficulty }).toArray();
-    // 转换 _id 为 id
-    return questions.map(question => {
-      question.id = question._id;
-      delete question._id;
-      return question;
-    });
+    const [rows] = await pool.execute(
+      'SELECT * FROM questions WHERE difficulty = ?',
+      [difficulty]
+    );
+    return rows;
   }
 
   static async getQuestionsByType(type) {
-    const db = getDB();
-    const questions = await db.collection('questions').find({ type }).toArray();
-    // 转换 _id 为 id
-    return questions.map(question => {
-      question.id = question._id;
-      delete question._id;
-      return question;
-    });
+    const [rows] = await pool.execute(
+      'SELECT * FROM questions WHERE type = ?',
+      [type]
+    );
+    return rows;
   }
 
   static async getQuestionsByDifficultyAndType(difficulty, type) {
-    const db = getDB();
-    const questions = await db.collection('questions').find({ difficulty, type }).toArray();
-    // 转换 _id 为 id
-    return questions.map(question => {
-      question.id = question._id;
-      delete question._id;
-      return question;
-    });
+    const [rows] = await pool.execute(
+      'SELECT * FROM questions WHERE difficulty = ? AND type = ?',
+      [difficulty, type]
+    );
+    return rows;
   }
 
   static async update(id, title, description, inputFormat, outputFormat, sampleInput, sampleOutput, difficulty, score, type, timeLimit, memoryLimit) {
-    const db = getDB();
-    const result = await db.collection('questions').updateOne(
-      { _id: id },
-      {
-        $set: {
-          title,
-          description,
-          input_format: inputFormat,
-          output_format: outputFormat,
-          sample_input: sampleInput,
-          sample_output: sampleOutput,
-          difficulty,
-          score,
-          type,
-          time_limit: timeLimit,
-          memory_limit: memoryLimit
-        }
-      }
+    const [result] = await pool.execute(
+      'UPDATE questions SET title = ?, description = ?, input_format = ?, output_format = ?, sample_input = ?, sample_output = ?, difficulty = ?, score = ?, type = ?, time_limit = ?, memory_limit = ? WHERE id = ?',
+      [title, description, inputFormat, outputFormat, sampleInput, sampleOutput, difficulty, score, type, timeLimit, memoryLimit, id]
     );
     return result;
   }
 
   static async delete(id) {
-    const db = getDB();
-    const result = await db.collection('questions').deleteOne({ _id: id });
+    const [result] = await pool.execute(
+      'DELETE FROM questions WHERE id = ?',
+      [id]
+    );
     return result;
   }
 }
